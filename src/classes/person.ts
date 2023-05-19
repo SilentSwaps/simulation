@@ -23,7 +23,7 @@ export class Person implements IPerson {
 	constructor(question: Question, questionIds: string[]) {
 		this.name = uniqueNamesGenerator(config);
 		this.location = { latitude:  52.799357, longtitude: 6.115400 };
-		this.speed = 100;
+		this.speed = 150;
 		this.question = question;
 		this.remainingQuestions = questionIds;
 		this.completedQuestion = false;

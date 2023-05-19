@@ -46,7 +46,7 @@ export const Home = () => {
 			movePeople();
 		}, 1000);
 		return () => clearInterval(interval);
-	}, []);
+	}, [ movePeople, questions ]);
 
 	return (
 		<Grid container>

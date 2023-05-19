@@ -37,13 +37,12 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	};
 
 	const movePeople = () => {
-		console.log(people); // <=== []
-		console.log(people.length); // <=== 0
 		setPeople((prev) => {
 			return prev.map((p) => {
 				if ( p.hasCompleted() ){
-					console.log("completed", questions[1]);
-					p.newQuestion(questions[1]);
+					const r = Math.floor(Math.random() * questions.length );
+					console.log(r);
+					p.newQuestion(questions[r]);
 				}
 				return p.move();
 			});
