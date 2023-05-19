@@ -10,4 +10,11 @@ export interface IPerson {
 	getLocation: () => GeoPoint
 	getSpeed: () => number
 	move: () => Person
+	newQuestion: (question: Question) => void
+	hasCompleted: () => boolean
 }
+
+export type Question = {
+	id: string,
+	hash: string;
+} & GeoPoint;

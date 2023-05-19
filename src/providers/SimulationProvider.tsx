@@ -3,13 +3,33 @@ import React, {
 } from "react";
 import { SimulationContext } from "../context/SimulationContext";
 import { Person } from "../classes/person";
-import { IPerson } from "../types";
+import { IPerson, Question } from "../types";
+import { getCollections } from "../data/actions";
+import { collections } from "../data/firebase";
+
+/*
+	// Map question Ids
+	Give each person these ids
+	Person gets a question => updated questionData array
+	Person walks there until question is completed
+	Person sets boolean completedQuestion to true and removes the question id from array
+
+*/
+
+type QuestionData = {
+	id: string,
+	amount: number
+}
 
 export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	const [ people, setPeople ] = useState<IPerson[]>([]);
+	const [ questions, setQuestions ] = useState<Question[]>([]);
+	const [ questionIds, setQuestionIds ] = useState<string[]>([]);
+	const [ questionData, setQuestionData ] = useState<QuestionData[]>([]);
 
 	const addPerson = () => {
-		setPeople([ ...people, new Person() ]);
+		// Change this with input field, loop over all people and add their initial question
+		setPeople([ ...people, new Person(questions[0], questionIds) ]);
 	};
 
 	const getInstances = (): IPerson[] => {
@@ -17,14 +37,33 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	};
 
 	const movePeople = () => {
+		console.log(people); // <=== []
+		console.log(people.length); // <=== 0
 		setPeople((prev) => {
-			return prev.map(p => p.move());
+			return prev.map((p) => {
+				if ( p.hasCompleted() ){
+					console.log("completed", questions[1]);
+					p.newQuestion(questions[1]);
+				}
+				return p.move();
+			});
 		});
 	};
 
+	useEffect(() => {
+		getCollections(collections.questions)
+			.then((q) => {
+				setQuestions(q);
+				setQuestionIds(q.map(o => o.id));
+			})
+			.catch((e) => {
+				console.log(e);
+			});
+	}, []);
+
 	return (
 		<SimulationContext.Provider value={{
-			addPerson, getInstances, movePeople, people,
+			addPerson, getInstances, movePeople, people, questions,
 		}}
 		>
 			{children}

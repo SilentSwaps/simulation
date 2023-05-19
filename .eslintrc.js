@@ -53,7 +53,6 @@ module.exports = {
 		"prefer-arrow-callback": "error",
 		"prefer-const": "error",
 		"prefer-object-spread": "error",
-		"prefer-promise-reject-errors": "error",
 		"prefer-rest-params": "error",
 		"prefer-spread": "error",
 		"prefer-template": "error",
@@ -127,7 +126,6 @@ module.exports = {
 		"@typescript-eslint/no-shadow": "error",
 		"@typescript-eslint/object-curly-spacing": ["error", "always"],
 		"@typescript-eslint/quotes": ["error", "double"],
-		"@typescript-eslint/require-await": "error",
 
 		"react/jsx-boolean-value": ["error", "never"],
 		"react/jsx-closing-bracket-location": ["error", "tag-aligned"],

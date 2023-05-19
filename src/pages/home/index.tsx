@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+	Box,
 	Button, Grid, Typography,
 } from "@mui/material";
 import { movePointTowards } from "../../util";
@@ -11,19 +12,19 @@ import "leaflet/dist/leaflet.css";
 import L, { marker } from "leaflet";
 import { GeoPoint } from "../../types";
 
-// delete L.Icon.Default.prototype._getIconUrl;
-
 L.Icon.Default.mergeOptions({
 	iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
 	iconUrl: require("leaflet/dist/images/marker-icon.png"),
 	shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
+const blueIcon = new L.Icon({ iconUrl: "https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|abcdef&chf=a,s,ee00FFFF" });
+
 export const Home = () => {
 	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
 
 	const {
-		addPerson, getInstances, movePeople, people,
+		addPerson, getInstances, movePeople, people, questions,
 	} = useSimulation();
 
 	const add = () => {
@@ -38,8 +39,6 @@ export const Home = () => {
 	useEffect(() => {
 		console.log("updated component", people);
 		setMarkers(people.map(p => p.getLocation()));
-		// people.map(p => console.log(p.getLocation()));
-		// setMarkers([...markers, people.map(p => p.getLocation())])
 	}, [people]);
 
 	useEffect(() => {
@@ -51,22 +50,32 @@ export const Home = () => {
 
 	return (
 		<Grid container>
-			<Grid item xs={2}>
-				<Typography>Settings</Typography>
+			<Grid
+				item
+				xs={2}
+			>
+				<Box
+					sx={{
+						display: "flex", flexDirection: "column", alignItems: "flex-start",
+					}}
+				>
+					<Typography variant="h2">Settings</Typography>
 
-				<Button onClick={add}>add</Button>
+					<Button onClick={add}>add</Button>
 
-				<Button onClick={getNames}>get names</Button>
+					<Button onClick={getNames}>get names</Button>
 
-				<Button onClick={movePeople}>Move</Button>
+					<Button onClick={movePeople}>Move</Button>
+
+					<Button>Start simulation</Button>
+				</Box>
 			</Grid>
 
 			<Grid item xs={10}>
-				<Typography>Side</Typography>
 
 				<MapContainer
 					center={[ 52.799811, 6.112557 ]}
-					zoom={13}
+					zoom={15}
 					scrollWheelZoom
 					style={{ width: "100%", height: "calc(100vh - 4rem)" }}
 				>
@@ -93,17 +102,23 @@ export const Home = () => {
 						})
 					}
 
-					<Marker position={[ 52.801336, 6.104918 ]}>
-						<Popup>
-							A pretty CSS3 popup.
-							{" "}
+					{
+						questions.map((q) => {
+							return (
+								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash}>
+									<Popup>
+										A pretty CSS3 popup.
+										{" "}
 
-							<br />
+										<br />
 
-							{" "}
-							Easily customizable.
-						</Popup>
-					</Marker>
+										{" "}
+										Easily customizable.
+									</Popup>
+								</Marker>
+							);
+						})
+					}
 				</MapContainer>
 			</Grid>
 		</Grid>
