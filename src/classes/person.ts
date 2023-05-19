@@ -15,7 +15,7 @@ export class Person implements IPerson {
 	private speed: number;
 	constructor() {
 		this.name = uniqueNamesGenerator(config);
-		this.location = { latitude:  RandomLocation(-90, 90, 8), longtitude: RandomLocation(-180, 180, 8) };
+		this.location = { latitude:  52.799357, longtitude: 6.115400 };
 		this.speed = 10;
 	}
 
@@ -34,7 +34,7 @@ export class Person implements IPerson {
 	move(): Person{
 		this.location = movePointTowards(
 			this.location,
-			{ latitude:  RandomLocation(-90, 90, 8), longtitude: RandomLocation(-180, 180, 8) },
+			{ latitude:  52.801336, longtitude: 6.104918 },
 			10
 		);
 		return this;
