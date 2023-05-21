@@ -12,6 +12,7 @@ export interface IPerson {
 	move: () => Person
 	newQuestion: (question: Question) => void
 	hasCompleted: () => boolean
+	getRemainingQuestions: () => string[]
 }
 
 export type Question = {

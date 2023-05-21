@@ -45,6 +45,10 @@ export class Person implements IPerson {
 		return this.completedQuestion;
 	}
 
+	getRemainingQuestions(){
+		return this.remainingQuestions;
+	}
+
 	move(): Person{
 		const distanceBetween = geofire.distanceBetween(
 			[ this.location.latitude, this.location.longtitude ],

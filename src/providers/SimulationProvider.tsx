@@ -40,9 +40,14 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		setPeople((prev) => {
 			return prev.map((p) => {
 				if ( p.hasCompleted() ){
-					const r = Math.floor(Math.random() * questions.length );
+					// Get the remaining questions of a person.
+					const remainingQuestions = p.getRemainingQuestions();
+					if (remainingQuestions.length === 0) return p;
+					// Generate a random number between 0 and it's length
+					const r = Math.floor(Math.random() * remainingQuestions.length );
+					const possibleQuestions = questions.filter(q => remainingQuestions.includes(q.id));
 					console.log(r);
-					p.newQuestion(questions[r]);
+					p.newQuestion(possibleQuestions[r]);
 				}
 				return p.move();
 			});

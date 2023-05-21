@@ -11,6 +11,11 @@ import {
 import "leaflet/dist/leaflet.css";
 import L, { marker } from "leaflet";
 import { GeoPoint } from "../../types";
+import IconButton from "@mui/material/IconButton";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 
 L.Icon.Default.mergeOptions({
 	iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -22,6 +27,7 @@ const blueIcon = new L.Icon({ iconUrl: "https://chart.apis.google.com/chart?chst
 
 export const Home = () => {
 	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
+	const [ pause, setPause ] = useState<boolean>(true);
 
 	const {
 		addPerson, getInstances, movePeople, people, questions,
@@ -42,6 +48,7 @@ export const Home = () => {
 	}, [people]);
 
 	useEffect(() => {
+		if (pause) return;
 		const interval = setInterval(() => {
 			movePeople();
 		}, 1000);
@@ -54,12 +61,41 @@ export const Home = () => {
 				item
 				xs={2}
 			>
+				<Box>
+					<Typography variant="h2">Settings</Typography>
+				</Box>
+
+				<Box>
+					<IconButton>
+						<ArrowBackIosIcon />
+					</IconButton>
+
+					{
+						pause ?(
+							<IconButton onClick={() => {
+								setPause(!pause);
+								movePeople();
+							}}
+							>
+								<PlayArrowIcon />
+							</IconButton>
+						):(
+							<IconButton onClick={() => setPause(!pause)}>
+								<PauseIcon />
+							</IconButton>
+						)
+					}
+
+					<IconButton>
+						<ArrowForwardIosIcon />
+					</IconButton>
+				</Box>
+
 				<Box
 					sx={{
 						display: "flex", flexDirection: "column", alignItems: "flex-start",
 					}}
 				>
-					<Typography variant="h2">Settings</Typography>
 
 					<Button onClick={add}>add</Button>
 
@@ -67,7 +103,7 @@ export const Home = () => {
 
 					<Button onClick={movePeople}>Move</Button>
 
-					<Button>Start simulation</Button>
+					<Button>Initialize</Button>
 				</Box>
 			</Grid>
 
@@ -124,12 +160,3 @@ export const Home = () => {
 		</Grid>
 	);
 };
-
-// const handleClick = () => {
-// 	const pointA = { latitude: 52.731069437604795, longtitude: 6.049038174628135 };
-// 	const pointB = { latitude: 52.731290, longtitude: 6.048536 };
-// 	const distanceInMeters = 100;
-
-// 	const newPoint = movePointTowards(pointA, pointB, distanceInMeters);
-// 	console.log(newPoint);
-// };
