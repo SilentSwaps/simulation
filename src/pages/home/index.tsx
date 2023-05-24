@@ -23,7 +23,8 @@ L.Icon.Default.mergeOptions({
 	shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-const blueIcon = new L.Icon({ iconUrl: "https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|abcdef&chf=a,s,ee00FFFF" });
+const blueIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" });
+const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" });
 
 export const Home = () => {
 	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
@@ -43,7 +44,7 @@ export const Home = () => {
 	};
 
 	useEffect(() => {
-		console.log("updated component", people);
+		// console.log("updated component", people);
 		setMarkers(people.map(p => p.getLocation()));
 	}, [people]);
 
@@ -51,7 +52,7 @@ export const Home = () => {
 		if (pause) return;
 		const interval = setInterval(() => {
 			movePeople();
-		}, 1000);
+		}, 200);
 		return () => clearInterval(interval);
 	}, [ movePeople, questions ]);
 
@@ -123,7 +124,7 @@ export const Home = () => {
 					{
 						markers.map((m, i) => {
 							return (
-								<Marker position={[ m.latitude, m.longtitude ]} key={i}>
+								<Marker position={[ m.latitude, m.longtitude ]} key={i} icon={blueIcon}>
 									<Popup>
 										A pretty CSS3 popup.
 										{" "}
@@ -141,7 +142,7 @@ export const Home = () => {
 					{
 						questions.map((q) => {
 							return (
-								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash}>
+								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash} icon={redIcon}>
 									<Popup>
 										A pretty CSS3 popup.
 										{" "}

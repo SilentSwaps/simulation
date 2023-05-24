@@ -13,6 +13,7 @@ export interface IPerson {
 	newQuestion: (question: Question) => void
 	hasCompleted: () => boolean
 	getRemainingQuestions: () => string[]
+	getCurrentQuestion: () => Question
 }
 
 export type Question = {
