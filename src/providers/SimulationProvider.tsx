@@ -15,30 +15,39 @@ type QuestionData = {
 	amount: number
 }
 
+// Latitude = equator, around the eath
+// Longtitude = around, north to south pole
+type HeatMapData = {
+	latitude: number,
+	longtitude: number,
+	points: number
+}
+
 export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	const [ people, setPeople ] = useState<IPerson[]>([]);
 	const [ questions, setQuestions ] = useState<Question[]>([]);
 	const [ questionIds, setQuestionIds ] = useState<string[]>([]);
 	const [ questionData, setQuestionData ] = useState<QuestionData[]>([]);
+	const [ heatmapData, setHeatmapData ] = useState<HeatMapData[]>([]);
 
 	// Creates a map for quick lookup
-	const getAmounts = () =>
-		new Map(questionData.map( i => [ i.questionId, i.amount ]));
+	const getAmounts = (d: QuestionData[]) =>
+		new Map(d.map( i => [ i.questionId, i.amount ]));
 	/**
 	 *
 	 * @param r array of ids of the remaining questions
 	 */
-	const getMergedAndFiltered = (r: string[]) =>
+	const getMergedAndFiltered = (r: string[], d: QuestionData[]) =>
 		questions
-			.map(q => ({ ...q, amount: getAmounts().get(q.id) as number }))
+			.map(q => ({ ...q, amount: getAmounts(d).get(q.id) as number }))
 			.filter(q => r.includes(q.id));
 
 	/**
 	 *
 	 * @param r array of ids of the remaining questions
 	 */
-	const getLeastBusyQuestion = (r: string[]) =>
-		getMergedAndFiltered(r)
+	const getLeastBusyQuestion = (r: string[], d: QuestionData[]) =>
+		getMergedAndFiltered(r, d)
 			.reduce((prev, curr) => {
 				return prev.amount < curr.amount ? prev : curr;
 			});
@@ -50,7 +59,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	 * @param clng current longtitude
 	 */
 	const getClosestQuestion = (r: string[], clat: number, clng: number) =>
-		getMergedAndFiltered(r)
+		getMergedAndFiltered(r, questionData)
 			.reduce((prev, curr) => {
 				return (
 					Math.ceil(geofire.distanceBetween(
@@ -71,7 +80,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		const cQuestion = person.getCurrentQuestion();
 
 		const closestQuestion = getClosestQuestion(remainingQuestions, cQuestion.latitude, cQuestion.longtitude);
-		const leastBusyQuestion = getLeastBusyQuestion(remainingQuestions);
+		const leastBusyQuestion = getLeastBusyQuestion(remainingQuestions, questionData);
 
 		setQuestionData((prev) => {
 			return prev.map((q) => {
@@ -88,16 +97,34 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		return leastBusyQuestion;
 	};
 
-	const addPerson = () => {
-		const question = getLeastBusyQuestion(questionIds);
-		setQuestionData((prev) => {
-			return prev.map((q) => {
-				if (q.questionId === question.id) return { ...q, amount: q.amount +1 };
-				return q;
-			});
+	const TransformToHeatmap = (o: IPerson[]) => {
+		const temp: HeatMapData[] = o.map((p) => {
+			const x = p.getLocation();
+			return {
+				latitude: x.latitude, longtitude: x.longtitude, points: 1,
+			};
 		});
-		const p = new Person(question, questionIds);
-		setPeople([ ...people, p ]);
+		setHeatmapData([ ...heatmapData, temp ] as HeatMapData[]);
+	};
+
+	const addPerson = () => {
+		let tempQuestionData = [...questionData];
+		let newPeople = [...people];
+		// const map = getAmounts(tempQuestionData);
+
+		for (let i=0; i<200;i++){
+			const q = getLeastBusyQuestion(questionIds, tempQuestionData);
+			const p = new Person(q, questionIds);
+			tempQuestionData = tempQuestionData.map((t) => {
+				if (t.questionId === q.id) return { ...t, amount: t.amount +1 };
+				return t;
+			});
+			newPeople = [ ...newPeople, p ];
+		}
+
+		TransformToHeatmap(newPeople);
+		setQuestionData(tempQuestionData);
+		setPeople(newPeople);
 	};
 
 	const getInstances = (): IPerson[] => {
@@ -105,24 +132,55 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	};
 
 	const movePeople = () => {
-		setPeople((prev) => {
-			return prev.map((p) => {
-				if ( p.hasCompleted() ){
-					// Get the remaining questions of a person.
-					const remainingQuestions = p.getRemainingQuestions();
-					if (remainingQuestions.length === 0) return p;
-					// Generate a random number between 0 and it's length
-					const n = getQuestion(p);
-					p.newQuestion(n);
+
+		let tempPeople = [...people];
+		let tempData = [...questionData];
+
+		tempPeople.forEach((person) => {
+
+			if (!person.hasCompleted()) return person.move();
+
+			const currentQuestion = person.getCurrentQuestion();
+			const remainingQuestions = person.getRemainingQuestions();
+
+			if (remainingQuestions.length === 0){
+				console.log(heatmapData);
+				// Person is done
+				tempData = tempData.map((t) => {
+					if (t.questionId === currentQuestion.id) return { ...t, amount: t.amount - 1 };
+					return t;
+				});
+				tempPeople = tempPeople.filter(t => t !== person);
+				return;
+			}
+
+			const leastBusyQuestion = getLeastBusyQuestion(remainingQuestions, tempData);
+			// console.log(`${person.getName()} will go to ${leastBusyQuestion.id} because it has ${questionData.find(d => d.questionId === leastBusyQuestion.id)?.amount} people`, questionData);
+			// console.log("before", tempData);
+			tempData = tempData.map((t) => {
+				if (t.questionId === currentQuestion.id) {
+					t = { ...t, amount: t.amount - 1 };
 				}
-				return p.move();
+				if (t.questionId === leastBusyQuestion.id){
+					t = { ...t, amount: t.amount + 1 };
+				}
+				return t;
 			});
+
+			person.newQuestion(leastBusyQuestion);
+
+			person.move();
 		});
+		if (people.length !== 0){
+			TransformToHeatmap(tempPeople);
+		}
+		setPeople(tempPeople);
+		setQuestionData(tempData);
 	};
 
 	useEffect(() => {
-		console.log(questionData);
-	}, [questionData]);
+		console.log(heatmapData);
+	}, [heatmapData]);
 
 	useEffect(() => {
 		getCollections(collections.questions)

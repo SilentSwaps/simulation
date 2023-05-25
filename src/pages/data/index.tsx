@@ -10,7 +10,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L, { marker } from "leaflet";
-import { GeoPoint } from "../../types";
+import { HeatmapLayerFactory } from "@vgrid/react-leaflet-heatmap-layer";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -25,28 +25,21 @@ L.Icon.Default.mergeOptions({
 
 const blueIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" });
 const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" });
+const HeatmapLayer = HeatmapLayerFactory<[number, number, number]>();
 
-export const Home = () => {
-	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
+const points: [number, number, number][] = [
+
+	[
+		-37.8963032667, 175.4132068, 500,
+	],
+];
+
+export const Insights = () => {
 	const [ pause, setPause ] = useState<boolean>(true);
 
 	const {
 		addPerson, getInstances, movePeople, people, questions,
 	} = useSimulation();
-
-	const add = () => {
-		addPerson();
-	};
-
-	const getNames = () => {
-		const p = getInstances();
-		people.forEach(px => console.log(px.getName()));
-	};
-
-	useEffect(() => {
-		// console.log("updated component", people);
-		setMarkers(people.map(p => p.getLocation()));
-	}, [people]);
 
 	useEffect(() => {
 		if (pause) return;
@@ -98,10 +91,6 @@ export const Home = () => {
 					}}
 				>
 
-					<Button onClick={add}>add</Button>
-
-					<Button onClick={getNames}>get names</Button>
-
 					<Button onClick={movePeople}>Move</Button>
 
 					<Button>Initialize</Button>
@@ -116,28 +105,20 @@ export const Home = () => {
 					scrollWheelZoom
 					style={{ width: "100%", height: "calc(100vh - 4rem)" }}
 				>
+					<HeatmapLayer
+						fitBoundsOnLoad
+						fitBoundsOnUpdate
+						points={points}
+						longitudeExtractor={m => m[1]}
+						latitudeExtractor={m => m[0]}
+						intensityExtractor={m => m[2]}
+						max={500}
+					/>
+
 					<TileLayer
 						url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
 						attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 					/>
-
-					{
-						markers.map((m, i) => {
-							return (
-								<Marker position={[ m.latitude, m.longtitude ]} key={i} icon={blueIcon}>
-									<Popup>
-										A pretty CSS3 popup.
-										{" "}
-
-										<br />
-
-										{" "}
-										Easily customizable.
-									</Popup>
-								</Marker>
-							);
-						})
-					}
 
 					{
 						questions.map((q) => {

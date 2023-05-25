@@ -5,6 +5,7 @@ import {
 import { Home } from "./pages/home";
 import { SimulationProvider } from "./providers/SimulationProvider";
 import { MapTest } from "./pages/map";
+import { Insights } from "./pages/data";
 
 function App() {
 	return (
@@ -14,6 +15,8 @@ function App() {
 					<Route path="/" element={<Home />} />
 
 					<Route path="/map" element={<MapTest />} />
+
+					<Route path="/insights" element={<Insights />} />
 				</Routes>
 			</BrowserRouter>
 		</SimulationProvider>
