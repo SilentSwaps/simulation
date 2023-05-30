@@ -3,7 +3,9 @@ import React, {
 } from "react";
 import { SimulationContext } from "../context/SimulationContext";
 import { Person } from "../classes/person";
-import { IPerson, Question } from "../types";
+import {
+	HeatMapData, IPerson, Question,
+} from "../types";
 import { getCollections } from "../data/actions";
 import { collections } from "../data/firebase";
 import * as geofire from "geofire-common";
@@ -13,14 +15,6 @@ type QuestionData = {
 	questionId: string,
 	// The amount of people going
 	amount: number
-}
-
-// Latitude = equator, around the eath
-// Longtitude = around, north to south pole
-type HeatMapData = {
-	latitude: number,
-	longtitude: number,
-	points: number
 }
 
 export const SimulationProvider = ({ children }: PropsWithChildren) => {
@@ -98,13 +92,13 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	};
 
 	const TransformToHeatmap = (o: IPerson[]) => {
-		const temp: HeatMapData[] = o.map((p) => {
+		const temp: HeatMapData = o.map((p) => {
 			const x = p.getLocation();
-			return {
-				latitude: x.latitude, longtitude: x.longtitude, points: 1,
-			};
+			return [
+				x.latitude, x.longtitude, 1,
+			];
 		});
-		setHeatmapData([ ...heatmapData, temp ] as HeatMapData[]);
+		setHeatmapData([ ...heatmapData, temp ]);
 	};
 
 	const addPerson = () => {
@@ -196,7 +190,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 
 	return (
 		<SimulationContext.Provider value={{
-			addPerson, getInstances, movePeople, people, questions,
+			addPerson, getInstances, movePeople, people, questions, heatmapData,
 		}}
 		>
 			{children}

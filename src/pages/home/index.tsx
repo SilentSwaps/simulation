@@ -16,6 +16,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
+import { useNavigate } from "react-router";
 
 L.Icon.Default.mergeOptions({
 	iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -29,7 +30,7 @@ const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-co
 export const Home = () => {
 	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
 	const [ pause, setPause ] = useState<boolean>(true);
-
+	const navigate = useNavigate();
 	const {
 		addPerson, getInstances, movePeople, people, questions,
 	} = useSimulation();
@@ -103,6 +104,8 @@ export const Home = () => {
 					<Button onClick={getNames}>get names</Button>
 
 					<Button onClick={movePeople}>Move</Button>
+
+					<Button onClick={() => navigate("insights")}>Insights</Button>
 
 					<Button>Initialize</Button>
 				</Box>

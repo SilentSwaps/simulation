@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-	Box,
-	Button, Grid, Typography,
+	Box, Button, Grid, Typography, Divider, TextField,
 } from "@mui/material";
 import { movePointTowards } from "../../util";
 import { useSimulation } from "../../hooks/useSimulation";
 import {
-	MapContainer, Marker, Popup, TileLayer, useMap,
+	MapContainer, Marker, Popup, TileLayer,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L, { marker } from "leaflet";
@@ -27,27 +26,24 @@ const blueIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-c
 const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" });
 const HeatmapLayer = HeatmapLayerFactory<[number, number, number]>();
 
-const points: [number, number, number][] = [
-
-	[
-		-37.8963032667, 175.4132068, 500,
-	],
-];
-
 export const Insights = () => {
 	const [ pause, setPause ] = useState<boolean>(true);
+	const [ tick, setTick ] = useState<number>(0);
+	const [ maxPoints, setMaxPoints ] = useState<string>("10");
+	const [ radius, setRadius ] = useState<string>("15");
 
 	const {
-		addPerson, getInstances, movePeople, people, questions,
+		addPerson, getInstances, movePeople, people, questions, heatmapData,
 	} = useSimulation();
 
 	useEffect(() => {
 		if (pause) return;
 		const interval = setInterval(() => {
-			movePeople();
+			if (tick + 1 > heatmapData.length -1) return setPause(!pause);
+			setTick(t => t + 1);
 		}, 200);
 		return () => clearInterval(interval);
-	}, [ movePeople, questions ]);
+	}, [ pause, tick ]);
 
 	return (
 		<Grid container>
@@ -56,11 +52,15 @@ export const Insights = () => {
 				xs={2}
 			>
 				<Box>
-					<Typography variant="h2">Settings</Typography>
+					<Typography variant="h4">Insights</Typography>
 				</Box>
 
 				<Box>
-					<IconButton>
+					<IconButton onClick={() => {
+						if (tick -1 < 0) return;
+						setTick(t => t - 1);
+					}}
+					>
 						<ArrowBackIosIcon />
 					</IconButton>
 
@@ -68,7 +68,6 @@ export const Insights = () => {
 						pause ?(
 							<IconButton onClick={() => {
 								setPause(!pause);
-								movePeople();
 							}}
 							>
 								<PlayArrowIcon />
@@ -80,9 +79,14 @@ export const Insights = () => {
 						)
 					}
 
-					<IconButton onClick={() =>  movePeople()}>
+					<IconButton onClick={() => {
+						if (tick + 1 > heatmapData.length) return;
+						setTick(t => t + 1);
+					}}
+					>
 						<ArrowForwardIosIcon />
 					</IconButton>
+
 				</Box>
 
 				<Box
@@ -91,9 +95,30 @@ export const Insights = () => {
 					}}
 				>
 
-					<Button onClick={movePeople}>Move</Button>
+					<TextField
+						id="points"
+						label="Maximum points"
+						focused
+						value={maxPoints}
+						margin="normal"
+						onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+							setMaxPoints(event.target.value);
+						}}
+					/>
 
-					<Button>Initialize</Button>
+					<TextField
+						id="radius"
+						label="Radius"
+						focused
+						value={radius}
+						margin="normal"
+						onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+							setRadius(event.target.value);
+						}}
+					/>
+
+					<Button onClick={() => setTick(0)}>Reset ticks</Button>
+
 				</Box>
 			</Grid>
 
@@ -105,15 +130,19 @@ export const Insights = () => {
 					scrollWheelZoom
 					style={{ width: "100%", height: "calc(100vh - 4rem)" }}
 				>
-					<HeatmapLayer
-						fitBoundsOnLoad
-						fitBoundsOnUpdate
-						points={points}
-						longitudeExtractor={m => m[1]}
-						latitudeExtractor={m => m[0]}
-						intensityExtractor={m => m[2]}
-						max={500}
-					/>
+					{
+						heatmapData.length > 0 ? (
+							<HeatmapLayer
+								points={heatmapData[tick]}
+								longitudeExtractor={m => m[1]}
+								latitudeExtractor={m => m[0]}
+								intensityExtractor={m => m[2]}
+								max={parseInt(maxPoints)}
+								radius={parseInt(radius)}
+								minOpacity={0.5}
+							/>
+						) : (null)
+					}
 
 					<TileLayer
 						url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"

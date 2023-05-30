@@ -1,3 +1,8 @@
+/*
+	Latitude = equator, around the eath
+	Longtitude = around, north to south pole
+*/
+
 import { Person } from "../classes/person";
 
 export type GeoPoint = {
@@ -20,3 +25,5 @@ export type Question = {
 	id: string,
 	hash: string;
 } & GeoPoint;
+
+export type HeatMapData = [number, number, number][]
