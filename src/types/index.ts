@@ -27,3 +27,10 @@ export type Question = {
 } & GeoPoint;
 
 export type HeatMapData = [number, number, number][]
+export type LineGraph = {
+	tick: number,
+	leastBusy: number,
+	leastBusyAndClosest: number
+	leastBusyRemaining: number
+}
+

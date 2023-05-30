@@ -147,8 +147,7 @@ export const Home = () => {
 							return (
 								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash} icon={redIcon}>
 									<Popup>
-										A pretty CSS3 popup.
-										{" "}
+										{q.hash}
 
 										<br />
 

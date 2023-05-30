@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction } from "react";
 import {
-	HeatMapData, IPerson, Question,
+	HeatMapData, IPerson, LineGraph, Question,
 } from "../types";
 import { Person } from "../classes/person";
 
@@ -11,6 +11,7 @@ interface SimulationContext {
 	people: IPerson[]
 	questions: Question[]
 	heatmapData: HeatMapData[]
+	lineGraphData: LineGraph[]
 }
 
 export const SimulationContext = React.createContext<SimulationContext>({} as SimulationContext);

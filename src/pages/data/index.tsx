@@ -15,6 +15,9 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
+import {
+	LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 
 L.Icon.Default.mergeOptions({
 	iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -33,7 +36,7 @@ export const Insights = () => {
 	const [ radius, setRadius ] = useState<string>("15");
 
 	const {
-		addPerson, getInstances, movePeople, people, questions, heatmapData,
+		questions, heatmapData, lineGraphData,
 	} = useSimulation();
 
 	useEffect(() => {
@@ -45,11 +48,13 @@ export const Insights = () => {
 		return () => clearInterval(interval);
 	}, [ pause, tick ]);
 
+	console.log(lineGraphData);
+
 	return (
 		<Grid container>
 			<Grid
 				item
-				xs={2}
+				xs={3}
 			>
 				<Box>
 					<Typography variant="h4">Insights</Typography>
@@ -122,7 +127,7 @@ export const Insights = () => {
 				</Box>
 			</Grid>
 
-			<Grid item xs={10}>
+			<Grid item xs={9}>
 
 				<MapContainer
 					center={[ 52.799811, 6.112557 ]}
@@ -154,8 +159,7 @@ export const Insights = () => {
 							return (
 								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash} icon={redIcon}>
 									<Popup>
-										A pretty CSS3 popup.
-										{" "}
+										{q.hash}
 
 										<br />
 

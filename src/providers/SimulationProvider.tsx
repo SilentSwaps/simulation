@@ -4,7 +4,7 @@ import React, {
 import { SimulationContext } from "../context/SimulationContext";
 import { Person } from "../classes/person";
 import {
-	HeatMapData, IPerson, Question,
+	HeatMapData, IPerson, LineGraph, Question,
 } from "../types";
 import { getCollections } from "../data/actions";
 import { collections } from "../data/firebase";
@@ -23,6 +23,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	const [ questionIds, setQuestionIds ] = useState<string[]>([]);
 	const [ questionData, setQuestionData ] = useState<QuestionData[]>([]);
 	const [ heatmapData, setHeatmapData ] = useState<HeatMapData[]>([]);
+	const [ lineGraphData, setLineGraphData ] = useState<LineGraph[]>([]);
 
 	// Creates a map for quick lookup
 	const getAmounts = (d: QuestionData[]) =>
@@ -52,8 +53,8 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	 * @param clat current latitude
 	 * @param clng current longtitude
 	 */
-	const getClosestQuestion = (r: string[], clat: number, clng: number) =>
-		getMergedAndFiltered(r, questionData)
+	const getClosestQuestion = (r: string[], clat: number, clng: number, d: QuestionData[]) =>
+		getMergedAndFiltered(r, d)
 			.reduce((prev, curr) => {
 				return (
 					Math.ceil(geofire.distanceBetween(
@@ -66,30 +67,6 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 					) * 1000) ? prev : curr
 				);
 			});
-
-	const getQuestion = (person: IPerson): Question => {
-		// Get the remaining question ids of person
-		const remainingQuestions = person.getRemainingQuestions();
-		// Get it's current location
-		const cQuestion = person.getCurrentQuestion();
-
-		const closestQuestion = getClosestQuestion(remainingQuestions, cQuestion.latitude, cQuestion.longtitude);
-		const leastBusyQuestion = getLeastBusyQuestion(remainingQuestions, questionData);
-
-		setQuestionData((prev) => {
-			return prev.map((q) => {
-				if (q.questionId === cQuestion.id){
-					return { ...q, amount: q.amount -1 };
-				}
-				if (q.questionId === leastBusyQuestion.id){
-					return { ...q, amount: q.amount + 1 };
-				}
-				return q;
-			});
-		});
-		// console.log(`${person.getName()} going to ${leastBusyQuestion.id} because it has ${leastBusyQuestion.amount} people currently going`);
-		return leastBusyQuestion;
-	};
 
 	const TransformToHeatmap = (o: IPerson[]) => {
 		const temp: HeatMapData = o.map((p) => {
@@ -106,7 +83,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		let newPeople = [...people];
 		// const map = getAmounts(tempQuestionData);
 
-		for (let i=0; i<200;i++){
+		for (let i=0; i<20;i++){
 			const q = getLeastBusyQuestion(questionIds, tempQuestionData);
 			const p = new Person(q, questionIds);
 			tempQuestionData = tempQuestionData.map((t) => {
@@ -125,10 +102,24 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		return people;
 	};
 
+	/*
+		Find actual least busy question
+		Find least busy question for person
+		Find closest question
+		Create array of data
+	*/
+
 	const movePeople = () => {
 
 		let tempPeople = [...people];
 		let tempData = [...questionData];
+
+		let tempLineData: LineGraph = {
+			leastBusy: 0,
+			leastBusyAndClosest: 0,
+			leastBusyRemaining: 0,
+			tick: 0,
+		};
 
 		tempPeople.forEach((person) => {
 
@@ -138,7 +129,6 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 			const remainingQuestions = person.getRemainingQuestions();
 
 			if (remainingQuestions.length === 0){
-				console.log(heatmapData);
 				// Person is done
 				tempData = tempData.map((t) => {
 					if (t.questionId === currentQuestion.id) return { ...t, amount: t.amount - 1 };
@@ -149,8 +139,25 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 			}
 
 			const leastBusyQuestion = getLeastBusyQuestion(remainingQuestions, tempData);
-			// console.log(`${person.getName()} will go to ${leastBusyQuestion.id} because it has ${questionData.find(d => d.questionId === leastBusyQuestion.id)?.amount} people`, questionData);
-			// console.log("before", tempData);
+
+			const actualLeastBusy = getLeastBusyQuestion(questionIds, tempData);
+			const closest = getClosestQuestion(
+				questionIds,
+				currentQuestion.latitude,
+				currentQuestion.longtitude,
+				tempData
+			);
+
+			if (leastBusyQuestion.hash === actualLeastBusy.hash){
+				tempLineData = { ...tempLineData, leastBusy: tempLineData.leastBusy + 1 };
+			}
+
+			if (leastBusyQuestion.hash === closest.hash){
+				tempLineData = { ...tempLineData, leastBusyAndClosest: tempLineData.leastBusyAndClosest + 1 };
+			}
+
+			tempLineData = { ...tempLineData, leastBusyRemaining: tempLineData.leastBusyRemaining + 1 };
+
 			tempData = tempData.map((t) => {
 				if (t.questionId === currentQuestion.id) {
 					t = { ...t, amount: t.amount - 1 };
@@ -160,21 +167,22 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 				}
 				return t;
 			});
-
 			person.newQuestion(leastBusyQuestion);
 
 			person.move();
 		});
+
 		if (people.length !== 0){
 			TransformToHeatmap(tempPeople);
 		}
+		setLineGraphData([ ...lineGraphData, tempLineData ]);
 		setPeople(tempPeople);
 		setQuestionData(tempData);
 	};
 
 	useEffect(() => {
-		console.log(heatmapData);
-	}, [heatmapData]);
+		console.log(lineGraphData);
+	}, [lineGraphData]);
 
 	useEffect(() => {
 		getCollections(collections.questions)
@@ -190,7 +198,7 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 
 	return (
 		<SimulationContext.Provider value={{
-			addPerson, getInstances, movePeople, people, questions, heatmapData,
+			addPerson, getInstances, movePeople, people, questions, heatmapData, lineGraphData,
 		}}
 		>
 			{children}
