@@ -57,9 +57,6 @@ export const Home = () => {
 				</Box>
 
 				<Box>
-					{/* <IconButton>
-						<ArrowBackIosIcon />
-					</IconButton> */}
 
 					{
 						pause ?(
@@ -101,6 +98,7 @@ export const Home = () => {
 
 					<Button onClick={() => navigate("insights")}>Insights</Button>
 
+					{markers.length === 0 ? (<Typography>Done</Typography>): (<Typography>Not done</Typography>)}
 				</Box>
 			</Grid>
 

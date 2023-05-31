@@ -43,28 +43,26 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	 */
 	const getLeastBusyQuestion = (r: string[], d: QuestionData[]) =>
 		getMergedAndFiltered(r, d)
-			.reduce((prev, curr) => {
-				return prev.amount < curr.amount ? prev : curr;
-			});
+			.reduce((p, c) => p.amount < c.amount ? p : c);
 
 	/**
 	 *
 	 * @param r array of ids of the remaining questions
-	 * @param clat current latitude
-	 * @param clng current longtitude
+	 * @param x current latitude
+	 * @param s current longtitude
 	 */
-	const getClosestQuestion = (r: string[], clat: number, clng: number, d: QuestionData[]) =>
+	const getClosestQuestion = (r: string[], x: number, s: number, d: QuestionData[]) =>
 		getMergedAndFiltered(r, d)
-			.reduce((prev, curr) => {
+			.reduce((p, c) => {
 				return (
 					Math.ceil(geofire.distanceBetween(
-						[ clat, clng ],
-						[ prev.latitude, prev.longtitude ]
+						[ x, s ],
+						[ p.latitude, p.longtitude ]
 					) * 1000 )
 					< Math.ceil(geofire.distanceBetween(
-						[ clat, clng ],
-						[ curr.latitude, curr.longtitude ]
-					) * 1000) ? prev : curr
+						[ x, s ],
+						[ c.latitude, c.longtitude ]
+					) * 1000) ? p : c
 				);
 			});
 
@@ -143,13 +141,13 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 
 			if (leastBusyQuestion.hash === actualLeastBusy.hash){
 				tempLineData = { ...tempLineData, leastBusy: tempLineData.leastBusy + 1 };
+			} else {
+				tempLineData = { ...tempLineData, leastBusyRemaining: tempLineData.leastBusyRemaining + 1 };
 			}
 
 			if (leastBusyQuestion.hash === closest.hash){
 				tempLineData = { ...tempLineData, leastBusyAndClosest: tempLineData.leastBusyAndClosest + 1 };
 			}
-
-			tempLineData = { ...tempLineData, leastBusyRemaining: tempLineData.leastBusyRemaining + 1 };
 
 			tempData = tempData.map((t) => {
 				if (t.questionId === currentQuestion.id) {
