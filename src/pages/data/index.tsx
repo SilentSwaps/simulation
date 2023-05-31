@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-	Box, Button, Grid, Typography, Divider, TextField,
+	Box, Button, Grid, Typography, TextField,
 } from "@mui/material";
-import { movePointTowards } from "../../util";
 import { useSimulation } from "../../hooks/useSimulation";
 import {
 	MapContainer, Marker, Popup, TileLayer,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L, { marker } from "leaflet";
+import L from "leaflet";
 import { HeatmapLayerFactory } from "@vgrid/react-leaflet-heatmap-layer";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -16,7 +15,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import {
-	LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+	LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
 L.Icon.Default.mergeOptions({
@@ -25,19 +24,38 @@ L.Icon.Default.mergeOptions({
 	shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-const blueIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" });
 const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" });
 const HeatmapLayer = HeatmapLayerFactory<[number, number, number]>();
+
+type BarChartData = {
+	leastBusy: number,
+	leasyBusyRemaining: number
+}
 
 export const Insights = () => {
 	const [ pause, setPause ] = useState<boolean>(true);
 	const [ tick, setTick ] = useState<number>(0);
 	const [ maxPoints, setMaxPoints ] = useState<string>("10");
 	const [ radius, setRadius ] = useState<string>("15");
+	const [ barchartData, setBarchatData ] = useState<BarChartData[] | undefined>();
 
 	const {
 		questions, heatmapData, lineGraphData,
 	} = useSimulation();
+
+	useEffect(() => {
+		let leastBusy = 0;
+		let leastBusyRemaining = 0;
+
+		for (let i = 0; i < lineGraphData.length; i++) {
+			leastBusy += lineGraphData[i].leastBusy;
+			leastBusyRemaining += lineGraphData[i].leastBusyRemaining;
+		}
+
+		setBarchatData([{ leastBusy, leasyBusyRemaining: leastBusyRemaining }] );
+
+		console.log(leastBusy, leastBusyRemaining);
+	}, [lineGraphData]);
 
 	useEffect(() => {
 		if (pause) return;
@@ -48,13 +66,11 @@ export const Insights = () => {
 		return () => clearInterval(interval);
 	}, [ pause, tick ]);
 
-	console.log(lineGraphData);
-
 	return (
 		<Grid container>
 			<Grid
 				item
-				xs={3}
+				xs={2}
 			>
 				<Box>
 					<Typography variant="h4">Insights</Typography>
@@ -85,7 +101,7 @@ export const Insights = () => {
 					}
 
 					<IconButton onClick={() => {
-						if (tick + 1 > heatmapData.length) return;
+						if (tick + 1 > heatmapData.length - 1) return;
 						setTick(t => t + 1);
 					}}
 					>
@@ -127,7 +143,77 @@ export const Insights = () => {
 				</Box>
 			</Grid>
 
-			<Grid item xs={9}>
+			<Grid item xs={4}>
+				<ResponsiveContainer width="100%" height="40%">
+					<LineChart
+						title="Choices least busy spot vs least busy spot of remainders"
+						width={500}
+						height={300}
+						data={lineGraphData.filter(l => (l.leastBusy !== 0 && l.leastBusyRemaining !== 0))}
+						margin={{
+							top: 5,
+							right: 30,
+							left: 20,
+							bottom: 5,
+						}}
+					>
+						<CartesianGrid strokeDasharray="3 3" />
+
+						<XAxis dataKey="name" />
+
+						<YAxis />
+
+						<Tooltip />
+
+						<Legend />
+
+						<Line
+							type="monotone"
+							dataKey="leastBusyRemaining"
+							label="Least busy of remaining questions"
+							stroke="#8884d8"
+							activeDot={{ r: 8 }}
+						/>
+
+						<Line
+							type="monotone"
+							label="Least busy"
+							dataKey="leastBusy"
+							stroke="#82ca9d"
+						/>
+					</LineChart>
+				</ResponsiveContainer>
+
+				<ResponsiveContainer width="100%" height="40%">
+					<BarChart
+						width={500}
+						height={300}
+						data={barchartData}
+						margin={{
+							top: 5,
+							right: 30,
+							left: 20,
+							bottom: 5,
+						}}
+					>
+						<CartesianGrid strokeDasharray="3 3" />
+
+						<XAxis dataKey="name" />
+
+						<YAxis />
+
+						<Tooltip />
+
+						<Legend />
+
+						<Bar dataKey="leasyBusyRemaining" fill="#8884d8" />
+
+						<Bar dataKey="leastBusy" fill="#82ca9d" />
+					</BarChart>
+				</ResponsiveContainer>
+			</Grid>
+
+			<Grid item xs={6}>
 
 				<MapContainer
 					center={[ 52.799811, 6.112557 ]}

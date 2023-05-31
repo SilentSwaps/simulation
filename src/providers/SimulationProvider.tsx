@@ -78,12 +78,12 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		setHeatmapData([ ...heatmapData, temp ]);
 	};
 
-	const addPerson = () => {
+	const addPerson = (amount: number) => {
 		let tempQuestionData = [...questionData];
 		let newPeople = [...people];
 		// const map = getAmounts(tempQuestionData);
 
-		for (let i=0; i<20;i++){
+		for (let i=0; i<amount;i++){
 			const q = getLeastBusyQuestion(questionIds, tempQuestionData);
 			const p = new Person(q, questionIds);
 			tempQuestionData = tempQuestionData.map((t) => {
@@ -101,13 +101,6 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 	const getInstances = (): IPerson[] => {
 		return people;
 	};
-
-	/*
-		Find actual least busy question
-		Find least busy question for person
-		Find closest question
-		Create array of data
-	*/
 
 	const movePeople = () => {
 
@@ -179,10 +172,6 @@ export const SimulationProvider = ({ children }: PropsWithChildren) => {
 		setPeople(tempPeople);
 		setQuestionData(tempData);
 	};
-
-	useEffect(() => {
-		console.log(lineGraphData);
-	}, [lineGraphData]);
 
 	useEffect(() => {
 		getCollections(collections.questions)

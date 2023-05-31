@@ -1,11 +1,10 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React from "react";
 import {
 	HeatMapData, IPerson, LineGraph, Question,
 } from "../types";
-import { Person } from "../classes/person";
 
 interface SimulationContext {
-	addPerson: () => void;
+	addPerson: (amount: number) => void;
 	getInstances: () => IPerson[]
 	movePeople: () => void;
 	people: IPerson[]

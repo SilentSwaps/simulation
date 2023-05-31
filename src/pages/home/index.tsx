@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
 import {
 	Box,
-	Button, Grid, Typography,
+	Button, Grid, TextField, Typography,
 } from "@mui/material";
-import { movePointTowards } from "../../util";
 import { useSimulation } from "../../hooks/useSimulation";
 import {
-	MapContainer, Marker, Popup, TileLayer, useMap,
+	MapContainer, Marker, Popup, TileLayer,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L, { marker } from "leaflet";
+import L from "leaflet";
 import { GeoPoint } from "../../types";
 import IconButton from "@mui/material/IconButton";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
@@ -30,22 +28,13 @@ const redIcon = new L.Icon({ iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-co
 export const Home = () => {
 	const [ markers, setMarkers ] = useState<GeoPoint[]>([]);
 	const [ pause, setPause ] = useState<boolean>(true);
+	const [ amount, setAmount ] = useState<string>("0");
 	const navigate = useNavigate();
 	const {
 		addPerson, getInstances, movePeople, people, questions,
 	} = useSimulation();
 
-	const add = () => {
-		addPerson();
-	};
-
-	const getNames = () => {
-		const p = getInstances();
-		people.forEach(px => console.log(px.getName()));
-	};
-
 	useEffect(() => {
-		// console.log("updated component", people);
 		setMarkers(people.map(p => p.getLocation()));
 	}, [people]);
 
@@ -64,13 +53,13 @@ export const Home = () => {
 				xs={2}
 			>
 				<Box>
-					<Typography variant="h2">Settings</Typography>
+					<Typography variant="h2">Controls</Typography>
 				</Box>
 
 				<Box>
-					<IconButton>
+					{/* <IconButton>
 						<ArrowBackIosIcon />
-					</IconButton>
+					</IconButton> */}
 
 					{
 						pause ?(
@@ -98,16 +87,20 @@ export const Home = () => {
 						display: "flex", flexDirection: "column", alignItems: "flex-start",
 					}}
 				>
+					<TextField
+						label="Amount of people"
+						focused
+						value={amount}
+						margin="normal"
+						onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+							setAmount(event.target.value);
+						}}
+					/>
 
-					<Button onClick={add}>add</Button>
-
-					<Button onClick={getNames}>get names</Button>
-
-					<Button onClick={movePeople}>Move</Button>
+					<Button onClick={() => addPerson(parseInt(amount))}>add</Button>
 
 					<Button onClick={() => navigate("insights")}>Insights</Button>
 
-					<Button>Initialize</Button>
 				</Box>
 			</Grid>
 
