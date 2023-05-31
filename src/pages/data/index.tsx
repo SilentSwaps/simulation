@@ -144,7 +144,84 @@ export const Insights = () => {
 			</Grid>
 
 			<Grid item xs={4}>
-				<ResponsiveContainer width="100%" height="40%">
+
+				<ResponsiveContainer width="100%" height="100%">
+					<BarChart
+						width={500}
+						height={300}
+						data={barchartData}
+						margin={{
+							top: 5,
+							right: 30,
+							left: 20,
+							bottom: 5,
+						}}
+					>
+						<CartesianGrid strokeDasharray="3 3" />
+
+						<XAxis dataKey="name" />
+
+						<YAxis />
+
+						<Tooltip />
+
+						<Legend />
+
+						<Bar dataKey="leasyBusyRemaining" fill="#8884d8" />
+
+						<Bar dataKey="leastBusy" fill="#82ca9d" />
+					</BarChart>
+				</ResponsiveContainer>
+			</Grid>
+
+			<Grid item xs={6}>
+
+				<MapContainer
+					center={[ 52.799811, 6.112557 ]}
+					zoom={15}
+					scrollWheelZoom
+					style={{ width: "100%", height: "700px" }}
+				>
+					{
+						heatmapData.length > 0 ? (
+							<HeatmapLayer
+								points={heatmapData[tick]}
+								longitudeExtractor={m => m[1]}
+								latitudeExtractor={m => m[0]}
+								intensityExtractor={m => m[2]}
+								max={parseInt(maxPoints)}
+								radius={parseInt(radius)}
+								minOpacity={0.5}
+							/>
+						) : (null)
+					}
+
+					<TileLayer
+						url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+						attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+					/>
+
+					{
+						questions.map((q) => {
+							return (
+								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash} icon={redIcon}>
+									<Popup>
+										{q.hash}
+
+										<br />
+
+										{" "}
+										Easily customizable.
+									</Popup>
+								</Marker>
+							);
+						})
+					}
+				</MapContainer>
+			</Grid>
+
+			<Grid item xs={12} sx={{ minHeight: 600 }}>
+				<ResponsiveContainer width="100%" height="100%">
 					<LineChart
 						title="Choices least busy spot vs least busy spot of remainders"
 						width={500}
@@ -183,80 +260,6 @@ export const Insights = () => {
 						/>
 					</LineChart>
 				</ResponsiveContainer>
-
-				<ResponsiveContainer width="100%" height="40%">
-					<BarChart
-						width={500}
-						height={300}
-						data={barchartData}
-						margin={{
-							top: 5,
-							right: 30,
-							left: 20,
-							bottom: 5,
-						}}
-					>
-						<CartesianGrid strokeDasharray="3 3" />
-
-						<XAxis dataKey="name" />
-
-						<YAxis />
-
-						<Tooltip />
-
-						<Legend />
-
-						<Bar dataKey="leasyBusyRemaining" fill="#8884d8" />
-
-						<Bar dataKey="leastBusy" fill="#82ca9d" />
-					</BarChart>
-				</ResponsiveContainer>
-			</Grid>
-
-			<Grid item xs={6}>
-
-				<MapContainer
-					center={[ 52.799811, 6.112557 ]}
-					zoom={15}
-					scrollWheelZoom
-					style={{ width: "100%", height: "calc(100vh - 4rem)" }}
-				>
-					{
-						heatmapData.length > 0 ? (
-							<HeatmapLayer
-								points={heatmapData[tick]}
-								longitudeExtractor={m => m[1]}
-								latitudeExtractor={m => m[0]}
-								intensityExtractor={m => m[2]}
-								max={parseInt(maxPoints)}
-								radius={parseInt(radius)}
-								minOpacity={0.5}
-							/>
-						) : (null)
-					}
-
-					<TileLayer
-						url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-						attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-					/>
-
-					{
-						questions.map((q) => {
-							return (
-								<Marker position={[ q.latitude, q.longtitude ]} key={q.hash} icon={redIcon}>
-									<Popup>
-										{q.hash}
-
-										<br />
-
-										{" "}
-										Easily customizable.
-									</Popup>
-								</Marker>
-							);
-						})
-					}
-				</MapContainer>
 			</Grid>
 		</Grid>
 	);

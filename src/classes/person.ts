@@ -26,7 +26,7 @@ export class Person implements IPerson {
 			latitude:  RandomLocation(52.801186, 52.800356, 6),
 			longtitude: RandomLocation(6.096956, 6.112663, 6),
 		};
-		this.speed = Math.floor(Math.random() * (100 - 25 + 1)) + 25;
+		this.speed = Math.floor(Math.random() * (50 - 25 + 1)) + 25;
 		this.question = question;
 		this.remainingQuestions = questionIds;
 		this.completedQuestion = false;
